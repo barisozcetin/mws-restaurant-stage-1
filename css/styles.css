@@ -44,7 +44,7 @@ article, aside, canvas, details, figcaption, figure, footer, header, hgroup, men
   color: #aaa;
   font-size: 8pt;
   letter-spacing: 1px;
-  padding: 25px;
+  /* padding: 25px; */
   text-align: center;
   text-transform: uppercase;
 }
@@ -66,12 +66,12 @@ nav h1 a {
   text-transform: uppercase;
 }
 #breadcrumb {
-    padding: 10px 40px 16px;
+    /* padding: 10px 40px 16px; */
     list-style: none;
     background-color: #eee;
     font-size: 17px;
     margin: 0;
-    width: calc(50% - 80px);
+    /* width: 100%; */
 }
 
 /* Display list items side by side */
@@ -130,12 +130,17 @@ nav h1 a {
 }
 
 /* ====================== Restaurant Listing ====================== */
+
+/* Grid display to fit them responsively instead of media queries */
 #restaurants-list {
   background-color: #f3f3f3;
   list-style: outside none none;
   margin: 0;
   padding: 30px 15px 60px;
   text-align: center;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(400px, 1fr));
+  justify-items: center;
 }
 #restaurants-list li {
   background-color: #fff;
@@ -184,18 +189,22 @@ nav h1 a {
 
 /* ====================== Restaurant Details ====================== */
 .inside header {
-  position: fixed;
+  /*position: fixed; */
   top: 0;
   width: 100%;
   z-index: 1000;
 }
+
+/* Assigned fixed height for now. position from fixed to relative. Cleared the margin on top */
 .inside #map-container {
   background: blue none repeat scroll 0 0;
   height: 87%;
-  position: fixed;
+  /*position: fixed;*/
+  position: relative;
   right: 0;
-  top: 80px;
-  width: 50%;
+  /* top: 80px; */
+  height: 300px; 
+  width: 100%;
 }
 .inside #map {
   background-color: #ccc;
@@ -205,7 +214,7 @@ nav h1 a {
 .inside #footer {
   bottom: 0;
   position: absolute;
-  width: 50%;
+  /* width: 100%; */
 }
 #restaurant-name {
   color: #f18200;
@@ -236,14 +245,19 @@ nav h1 a {
   text-transform: uppercase;
 	width: 90%;
 }
+
+/* Made the container displays grid so i can center the content better in them */
 #restaurant-container, #reviews-container {
   border-bottom: 1px solid #d9d9d9;
   border-top: 1px solid #fff;
-  padding: 140px 40px 30px;
-  width: 50%;
+  /* padding: 140px 40px 30px; */
+  width: 100%;
+  display: grid;
+  grid-template-rows: 1fr;
+  justify-items: center;
 }
 #reviews-container {
-  padding: 30px 40px 80px;
+  padding: 30px 0px 80px;
 }
 #reviews-container h2 {
   color: #f58500;
@@ -252,9 +266,13 @@ nav h1 a {
   letter-spacing: -1px;
   padding-bottom: 1pt;
 }
+
+/* Display:grid to center the content */
 #reviews-list {
   margin: 0;
   padding: 0;
+  display: grid;
+  justify-items: center;
 }
 #reviews-list li {
   background-color: #fff;
@@ -263,7 +281,7 @@ nav h1 a {
   list-style-type: none;
   margin: 0 0 30px;
   overflow: hidden;
-  padding: 0 20px 20px;
+  /* padding: 0 20px 20px; */
   position: relative;
   width: 85%;
 }
@@ -272,4 +290,10 @@ nav h1 a {
 }
 #restaurant-hours td {
   color: #666;
+}
+
+
+.inside {
+  display: grid;
+  grid-template-rows: 1fr;
 }
