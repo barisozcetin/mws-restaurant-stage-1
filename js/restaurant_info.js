@@ -12,10 +12,14 @@ window.initMap = () => {
       self.map = new google.maps.Map(document.getElementById('map'), {
         zoom: 16,
         center: restaurant.latlng,
-        scrollwheel: false
+        scrollwheel: false,
+        tabIndex: -1
       });
       fillBreadcrumb();
       DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+      /** noTabOnMap function is Located in app.js */
+      google.maps.event.addListener(map, 'idle', noTabOnMap);
+
     }
   });
 }
@@ -58,6 +62,7 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  image.alt = `${restaurant.name}'s photo`;
 
   const cuisine = document.getElementById('restaurant-cuisine');
   cuisine.innerHTML = restaurant.cuisine_type;
@@ -115,22 +120,29 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
 /**
  * Create review HTML and add it to the webpage.
  */
+// Added tab index to all comment elements - Barış
+
 createReviewHTML = (review) => {
   const li = document.createElement('li');
+  li.tabIndex="0";
   const name = document.createElement('p');
+  name.tabIndex="0";
   name.innerHTML = review.name;
   li.appendChild(name);
 
   const date = document.createElement('p');
   date.innerHTML = review.date;
+  date.tabIndex="0";
   li.appendChild(date);
 
   const rating = document.createElement('p');
   rating.innerHTML = `Rating: ${review.rating}`;
+  rating.tabIndex="0"
   li.appendChild(rating);
 
   const comments = document.createElement('p');
   comments.innerHTML = review.comments;
+  comments.tabIndex="0";
   li.appendChild(comments);
 
   return li;
@@ -160,4 +172,16 @@ getParameterByName = (name, url) => {
   if (!results[2])
     return '';
   return decodeURIComponent(results[2].replace(/\+/g, ' '));
+}
+
+
+/** I intended to listen idle event on map but it didn't load all the links and buttons on map. so i had to use some hacky way and use set timeout */
+function noTabOnMap() {
+  setTimeout(function(){ 
+    const mapDiv = document.querySelector('#map-container');
+    let mapLinks = mapDiv.querySelectorAll("#map-container *");
+    for (let link of mapLinks) {
+      link.tabIndex = "-1";
+    }
+  }, 1000);
 }

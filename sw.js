@@ -10,6 +10,7 @@ self.addEventListener('install', function(event) {
           '/',
           '/index.html',
           '/js/main.js',
+          '/js/app.js',
           '/js/dbhelper.js',
           '/js/restaurant_info.js',
           '/css/styles.css'
