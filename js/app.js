@@ -2,6 +2,21 @@
  * also registering the service worker in this file
  */
 
+
+ /**
+ * Initiate service worker
+ */
+if ('serviceWorker' in navigator) {
+  navigator.serviceWorker
+    .register('/sw.js')
+    .then(() => {
+      console.log('Service worker registered...');
+    })
+    .catch(err => {
+      console.log(err);
+    });
+}
+
 /** I intended to listen idle event on map but it didn't load all the links and buttons on map. so i had to use some hacky way and use set timeout */
 function noTabOnMap() {
   setTimeout(function(){ 
