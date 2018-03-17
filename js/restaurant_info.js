@@ -5,54 +5,61 @@ var map;
  * Initialize Google map, called from HTML.
  */
 window.initMap = () => {
-  fetchRestaurantFromURL((error, restaurant) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      self.map = new google.maps.Map(document.getElementById('map'), {
-        zoom: 16,
-        center: restaurant.latlng,
-        scrollwheel: false,
-        tabIndex: -1
-      });
-      fillBreadcrumb();
-      DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
-      /** noTabOnMap function is Located in app.js */
-      google.maps.event.addListener(map, 'idle', noTabOnMap);
-
-    }
-  });
+  fetchRestaurantFromURL().then(restaurant => {
+    self.map = new google.maps.Map(document.getElementById('map'), {
+      zoom: 16,
+      center: restaurant.latlng,
+      scrollwheel: false,
+      tabIndex: -1
+    });
+    fillBreadcrumb()
+    DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
+        /** noTabOnMap function is Located in app.js */
+    google.maps.event.addListener(map, 'idle', noTabOnMap);
+  })
+  .catch(error=> {
+    console.log(error)
+  })
 }
+
+
 
 /**
  * Get current restaurant from page URL.
  */
-fetchRestaurantFromURL = (callback) => {
-  if (self.restaurant) { // restaurant already fetched!
-    callback(null, self.restaurant)
-    return;
-  }
-  const id = getParameterByName('id');
-  if (!id) { // no id found in URL
-    error = 'No restaurant id in URL'
-    callback(error, null);
-  } else {
-    DBHelper.fetchRestaurantById(id, (error, restaurant) => {
-      self.restaurant = restaurant;
-      if (!restaurant) {
-        console.error(error);
-        return;
-      }
-      fillRestaurantHTML();
-      callback(null, restaurant)
-    });
-  }
+fetchRestaurantFromURL = () => {
+  return new Promise((resolve, reject) => {
+    if (self.restaurant) { // restaurant already fetched!
+      resolve(self.restaurant);
+    }
+    const id = getParameterByName('id');
+    if (!id) { // no id found in URL
+      error = 'No restaurant id in URL'
+      reject(error);
+    } else {
+      return DBHelper.fetchRestaurantById(id).then(restaurant => {
+        self.restaurant = restaurant;
+        if (!restaurant) {
+          reject(error);
+        }
+        fillRestaurantHTML();
+        resolve(restaurant)
+      })
+      .catch(error => {
+        console.log(error)
+      })
+    }
+  })
+  
 }
+
+
 
 /**
  * Create restaurant HTML and add it to the webpage
  */
 fillRestaurantHTML = (restaurant = self.restaurant) => {
+  // console.log(restaurant)
   const name = document.getElementById('restaurant-name');
   name.innerHTML = restaurant.name;
 
@@ -61,7 +68,13 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
 
   const image = document.getElementById('restaurant-img');
   image.className = 'restaurant-img'
+  image.srcset = DBHelper.imageSrcSetForRestaurant(restaurant);
+  image.sizes=`(max-width: 320px) 280px,
+            (max-width: 480px) 440px,
+            800px`
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  
+  
   image.alt = `${restaurant.name} Restaurant's photo`;
 
   const cuisine = document.getElementById('restaurant-cuisine');

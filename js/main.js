@@ -15,14 +15,23 @@ document.addEventListener('DOMContentLoaded', (event) => {
 /**
  * Fetch all neighborhoods and set their HTML.
  */
+// fetchNeighborhoods = () => {
+//   DBHelper.fetchNeighborhoods((error, neighborhoods) => {
+//     if (error) { // Got an error
+//       console.error(error);
+//     } else {
+//       self.neighborhoods = neighborhoods;
+//       fillNeighborhoodsHTML();
+//     }
+//   });
+// }
+
 fetchNeighborhoods = () => {
-  DBHelper.fetchNeighborhoods((error, neighborhoods) => {
-    if (error) { // Got an error
-      console.error(error);
-    } else {
-      self.neighborhoods = neighborhoods;
-      fillNeighborhoodsHTML();
-    }
+  DBHelper.fetchNeighborhoods().then(neighborhoods => {
+    self.neighborhoods = neighborhoods;
+    fillNeighborhoodsHTML();
+  }).catch(error => {
+    console.log(error);
   });
 }
 
@@ -42,14 +51,23 @@ fillNeighborhoodsHTML = (neighborhoods = self.neighborhoods) => {
 /**
  * Fetch all cuisines and set their HTML.
  */
+// fetchCuisines = () => {
+//   DBHelper.fetchCuisines((error, cuisines) => {
+//     if (error) { // Got an error!
+//       console.error(error);
+//     } else {
+//       self.cuisines = cuisines;
+//       fillCuisinesHTML();
+//     }
+//   });
+// }
+
 fetchCuisines = () => {
-  DBHelper.fetchCuisines((error, cuisines) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      self.cuisines = cuisines;
-      fillCuisinesHTML();
-    }
+  DBHelper.fetchCuisines().then(cuisines => {
+    self.cuisines = cuisines;
+    fillCuisinesHTML();
+  }).catch(error => {
+    console.log(error);
   });
 }
 
@@ -97,13 +115,17 @@ updateRestaurants = () => {
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
 
-  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
-    if (error) { // Got an error!
-      console.error(error);
-    } else {
-      resetRestaurants(restaurants);
-      fillRestaurantsHTML();
-    }
+  // DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
+  //   if (error) { // Got an error!
+  //     console.error(error);
+  //   } else {
+  //     resetRestaurants(restaurants);
+  //     fillRestaurantsHTML();
+  //   }
+  // })
+  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine,neighborhood).then(restaurants => {
+    resetRestaurants(restaurants);
+    fillRestaurantsHTML();
   })
 }
 
@@ -143,6 +165,10 @@ createRestaurantHTML = (restaurant) => {
 
   const image = document.createElement('img');
   image.className = 'restaurant-img';
+  image.srcset = DBHelper.imageSrcSetForRestaurant(restaurant);
+  image.sizes=`(max-width: 320px) 280px,
+            (max-width: 480px) 440px,
+            800px`;
   image.src = DBHelper.imageUrlForRestaurant(restaurant);
   image.alt = `${restaurant.name} Restaurant's photo`;
   li.append(image);
