@@ -66,7 +66,7 @@ nav h1 a {
   
   text-transform: uppercase;
 }
-@media screen and (min-width: 1024px){
+@media screen and (min-width: 900px){
   nav h1 a {
     letter-spacing: 10px;
   }
@@ -277,7 +277,7 @@ nav h1 a {
 }
 
 /* Show image and info side by side on tablet and bigger */ 
-  @media screen and (min-width: 1024px){
+  @media screen and (min-width: 900px){
     #restaurant-container {
       grid-template-columns:minmax(1px, 50px) minmax(400px, 4fr) minmax(300px 3fr)  minmax(1px, 50px);
       grid-template-rows:  60px 40px 80px 1fr;
@@ -321,7 +321,7 @@ nav h1 a {
       font-size: 1rem;
     }
   }
-@media screen and (min-width: 1281px){
+@media screen and (min-width: 1200px){
   #restaurant-name {
     font-size: 2rem;
   }

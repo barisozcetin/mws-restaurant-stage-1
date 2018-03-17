@@ -101,7 +101,7 @@ class DBHelper {
   /**
    * Fetch all neighborhoods with proper error handling.
    */
-borhoods() {
+  static fetchNeighborhoods() {
     return DBHelper.fetchRestaurants().then(restaurants => {
       const neighborhoods = restaurants.map((v, i) => restaurants[i].neighborhood);
         // Remove duplicates from neighborhoods
