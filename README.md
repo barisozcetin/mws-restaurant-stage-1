@@ -1,8 +1,8 @@
-# Mobile Web Specialist Certification Course - Part 2
+# Mobile Web Specialist Certification Course - Part 3
 ---
 #### _Three Stage Course Material Project - Restaurant Reviews_
 
-## Project Overview: Stage 
+## Project Overview: Stage 3
 
 forked from: `https://github.com/udacity/mws-restaurant-stage-1`
 
