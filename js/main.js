@@ -100,6 +100,7 @@ window.initMap = () => {
   });
   updateRestaurants();
   google.maps.event.addListener(map, 'idle', noTabOnMap);
+  google.maps.event.addListener(map, 'idle', setTitleToIframe);
 }
 
 /**
@@ -108,22 +109,17 @@ window.initMap = () => {
 updateRestaurants = () => {
   const cSelect = document.getElementById('cuisines-select');
   const nSelect = document.getElementById('neighborhoods-select');
+  const fSelect = document.getElementById('favorites-select');
 
   const cIndex = cSelect.selectedIndex;
   const nIndex = nSelect.selectedIndex;
+  const fIndex = fSelect.selectedIndex;
 
   const cuisine = cSelect[cIndex].value;
   const neighborhood = nSelect[nIndex].value;
-
-  // DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, (error, restaurants) => {
-  //   if (error) { // Got an error!
-  //     console.error(error);
-  //   } else {
-  //     resetRestaurants(restaurants);
-  //     fillRestaurantsHTML();
-  //   }
-  // })
-  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine,neighborhood).then(restaurants => {
+  const isFavorite = fSelect[fIndex].value;
+ 
+  DBHelper.fetchRestaurantByCuisineAndNeighborhood(cuisine,neighborhood, isFavorite).then(restaurants => {
     resetRestaurants(restaurants);
     fillRestaurantsHTML();
   })
@@ -163,15 +159,24 @@ fillRestaurantsHTML = (restaurants = self.restaurants) => {
 createRestaurantHTML = (restaurant) => {
   const li = document.createElement('li');
 
+  const picture = document.createElement('picture');
+  const webpSource = document.createElement('source');
+  // const jpegSource = 
+  webpSource.srcset = DBHelper.webpThumbnailForRestaurant(restaurant);
+  webpSource.type = 'image/webp';
+
   const image = document.createElement('img');
   image.className = 'restaurant-img';
-  image.srcset = DBHelper.imageSrcSetForRestaurant(restaurant);
-  image.sizes=`(max-width: 320px) 280px,
-            (max-width: 480px) 440px,
-            800px`;
-  image.src = DBHelper.imageUrlForRestaurant(restaurant);
+  // image.srcset = DBHelper.imageSrcSetForRestaurant(restaurant);
+  // image.sizes=`(max-width: 320px) 280px,
+  //           (max-width: 480px) 440px,
+  //           800px`;
+  image.src = DBHelper.imgThumbnailForRestaurant(restaurant);
   image.alt = `${restaurant.name} Restaurant's photo`;
-  li.append(image);
+  picture.append(webpSource);
+  picture.append(image);
+  li.append(picture);
+  
 
   const name = document.createElement('h3');
   name.innerHTML = restaurant.name;
@@ -212,3 +217,15 @@ addMarkersToMap = (restaurants = self.restaurants) => {
 }
 
 
+
+
+
+//*** On mobile screen, filter aria is hidden. It can be expanded with button  */
+const filterGroup = document.querySelector('#select-group');
+const expandFiltersButton = document.querySelector('#expand-filters-btn');
+expandFiltersButton.addEventListener("click", function(event) {
+  this.setAttribute('aria-checked', this.getAttribute('aria-checked') == 'true' ? 'false' : 'true');
+  filterGroup.setAttribute('aria-label', filterGroup.getAttribute('aria-expanded') == 'true' ? 'Expands filters' : 'Collapse filters' );
+  filterGroup.setAttribute('aria-expanded', filterGroup.getAttribute('aria-expanded') == 'true' ? 'false' : 'true' );
+  
+})

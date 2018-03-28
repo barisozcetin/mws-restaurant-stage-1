@@ -6,6 +6,8 @@ var map;
  */
 window.initMap = () => {
   fetchRestaurantFromURL().then(restaurant => {
+    // console.log(restaurant);
+    // console.table(restaurant);
     self.map = new google.maps.Map(document.getElementById('map'), {
       zoom: 16,
       center: restaurant.latlng,
@@ -16,9 +18,10 @@ window.initMap = () => {
     DBHelper.mapMarkerForRestaurant(self.restaurant, self.map);
         /** noTabOnMap function is Located in app.js */
     google.maps.event.addListener(map, 'idle', noTabOnMap);
+    google.maps.event.addListener(map, 'idle', setTitleToIframe);
   })
   .catch(error=> {
-    console.log(error)
+    console.error(error)
   })
 }
 
@@ -42,16 +45,103 @@ fetchRestaurantFromURL = () => {
         if (!restaurant) {
           reject(error);
         }
-        fillRestaurantHTML();
-        resolve(restaurant)
+        return restaurant
+      }).then((restaurant) => {
+        fetchReviewsForRestaurant(id).then(reviews => {
+          // console.log(reviews)
+          self.restaurant.reviews = reviews;
+          return restaurant;
+          
+        })
+        .then(restaurant => {
+
+            fillRestaurantHTML();
+            resolve(restaurant);
+        })
+        
       })
       .catch(error => {
-        console.log(error)
+        console.error(error)
       })
     }
   })
   
 }
+
+
+//** Fetching restaurant reviews */
+fetchReviewsForRestaurant = (restaurantId) => {
+  return DBHelper.fetchReviewsForRestaurant(restaurantId);
+}
+
+
+
+//** Posting new review to restaurant */
+postReviewToRestaurant = () => {
+  // event.preventDefault();
+  const name = document.querySelector('#review-name').value.trim();
+  const rating = document.querySelector('input[name="score"]:checked').value;
+  const comments = document.querySelector('#review-text').value.trim();
+  const restaurant_id = self.restaurant.id
+  if (name != '' && rating && comments != '') {
+    const review = {
+      restaurant_id,
+      name,
+      rating,
+      comments,
+      id: new Date().getTime()
+    }
+    DBHelper.postReviewToRestaurant(restaurant_id,review)
+    .then(response => {
+      if (response) {
+        // console.log(response)
+        return true
+      }
+    })
+    // .then(response => {
+    //   console.log(response)
+    //   // const reviewList = document.getElementById('reviews-list');
+    //   // reviewList.prepend(createReviewHTML(response));
+    //   return true;
+    // })
+  } else {
+    return false;
+  }
+  // console.log(this)
+}
+
+
+//** Check if the restaurant is in favorites */
+checkFavoriteStatus = (restaurant = self.restaurant) => {
+  if (self.restaurant.hasOwnProperty("is_favorite")) {
+    return self.is_favorite;
+  } else return false;
+};
+
+
+
+
+
+// const favoriteButton = document.getElementById('favorite-btn');
+//*** TOGGLES FAVORITE STATUS */
+toggleFavorite = (restaurant = self.restaurant) => {
+  let command = restaurant.is_favorite.toString()  == 'true' ? false : true;
+  
+  DBHelper.toggleFavoriteStatus(restaurant.id, command).then(updatedRestaurant => {
+    self.restaurant.is_favorite = updatedRestaurant.is_favorite;
+    // console.log(updatedRestaurant.is_favorite)
+    // console.log(updatedRestaurant.is_favorite == 'true')
+    // favoriteButton.innerHTML = updatedRestaurant.is_favorite == 'true' ? 'Unfavorite' : 'Favorite';
+    favoriteButton.setAttribute('aria-checked', updatedRestaurant.is_favorite);
+    // console.log(updatedRestaurant.is_favorite)
+    favoriteButton.innerHTML = updatedRestaurant.is_favorite.toString() == 'true'  ?  '❤️' :  '🖤'   ;
+    let favoriteLabel = updatedRestaurant.is_favorite.toString() == 'true'  ? 'Restaurant is in favorites. Click to unfavorite' : 'Restaurant is not in favorites. Click to favorite';
+    favoriteButton.setAttribute('aria-label',favoriteLabel)
+  })
+}
+
+
+
 
 
 
@@ -66,9 +156,22 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   const address = document.getElementById('restaurant-address');
   address.innerHTML = restaurant.address;
 
+  let favoriteLabel = restaurant.is_favorite.toString() == 'true'  ? 'Restaurant is in favorites. Click to unfavorite' : 'Restaurant is not in favorites. Click to favorite';
+  favoriteButton.setAttribute('aria-label',favoriteLabel)
+  favoriteButton.innerHTML = restaurant.is_favorite.toString() == 'true' ?  '❤️' : '🖤';
+  favoriteButton.setAttribute('aria-checked', restaurant.is_favorite);
+  //*** ADDING EVENT LISTENER TO FAVORITE TOGGLE BUTTON */
+  favoriteButton.addEventListener("click", (event) => {
+    event.preventDefault();
+    toggleFavorite();
+  });
+
   const image = document.getElementById('restaurant-img');
+  const webpSource = document.getElementById('webp-source');
+  const jpegSource = document.getElementById('jpeg-source');
   image.className = 'restaurant-img'
-  image.srcset = DBHelper.imageSrcSetForRestaurant(restaurant) || '/img/default.jpg';
+  jpegSource.srcset = DBHelper.imageSrcSetForRestaurant(restaurant) || '/img/default.jpg';
+  webpSource.srcset = DBHelper.imageWebpForRestaurant(restaurant);
   image.sizes=`(max-width: 320px) 280px,
             (max-width: 480px) 440px,
             800px`
@@ -86,6 +189,13 @@ fillRestaurantHTML = (restaurant = self.restaurant) => {
   }
   // fill reviews
   fillReviewsHTML();
+
+  //** ADDED EVENT LISTENER TO NEW REVIEW FORM */
+  const reviewForm = document.querySelector('#new-review-form');
+  reviewForm.addEventListener('submit', event => {
+    event.preventDefault();
+    postReviewToRestaurant();
+  });
 }
 
 /**
@@ -124,7 +234,8 @@ fillReviewsHTML = (reviews = self.restaurant.reviews) => {
     return;
   }
   const ul = document.getElementById('reviews-list');
-  reviews.forEach(review => {
+  reviews.sort((a,b) => new Date(b.createdAt) - new Date(a.createdAt))
+  .forEach(review => {
     ul.appendChild(createReviewHTML(review));
   });
   container.appendChild(ul);
@@ -144,7 +255,7 @@ createReviewHTML = (review) => {
   li.appendChild(name);
 
   const date = document.createElement('p');
-  date.innerHTML = review.date;
+  date.innerHTML = new Date(review.createdAt).toLocaleString() ;
   date.tabIndex="0";
   li.appendChild(date);
 
@@ -189,13 +300,22 @@ getParameterByName = (name, url) => {
 }
 
 
-/** I intended to listen idle event on map but it didn't load all the links and buttons on map. so i had to use some hacky way and use set timeout */
-function noTabOnMap() {
-  setTimeout(function(){ 
-    const mapDiv = document.querySelector('#map-container');
-    let mapLinks = mapDiv.querySelectorAll("#map-container *");
-    for (let link of mapLinks) {
-      link.tabIndex = "-1";
-    }
-  }, 1000);
+
+
+
+
+//*** Custom code */
+const favoriteButton = document.querySelector('#favorite-btn');
+
+function toggleHeart() {
+  if ( favoriteButton.innerHTML == '🖤') favoriteButton.innerHTML = '❤️'
+  else favoriteButton.innerHTML = '🖤';
 }
+
+// favoriteButton.addEventListener("mouseover", toggleHeart);
+// favoriteButton.addEventListener("mouseleave", toggleHeart);
+
+const reviewText = document.querySelector('#review-text');
+reviewText.addEventListener("focus", function(event) {
+  this.rows = 4;
+})

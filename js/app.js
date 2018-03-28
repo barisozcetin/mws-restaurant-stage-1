@@ -27,3 +27,15 @@ function noTabOnMap() {
     }
   }, 1000);
 }
+
+//** Adding title to iframe for accessibility */
+function setTitleToIframe() {
+  setTimeout(() => {
+    const mapsIframe = document.querySelector('iframe');
+    mapsIframe.title = 'Google Maps'
+  }, 1000);
+}
+
+
+
+
