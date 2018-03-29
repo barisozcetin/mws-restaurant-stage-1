@@ -10,6 +10,9 @@ const dbPromise = idb.open('restaurants-store', 3, function(db) {
   if (!db.objectStoreNames.contains('sync-reviews')) {
     db.createObjectStore('sync-reviews', {keyPath: 'id'});
   }
+  if (!db.objectStoreNames.contains('sync-favorite')) {
+    db.createObjectStore('sync-favorite', {keyPath: 'id'});
+  }
 });
 
 

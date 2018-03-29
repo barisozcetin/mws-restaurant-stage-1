@@ -93,11 +93,14 @@ postReviewToRestaurant = () => {
     }
     DBHelper.postReviewToRestaurant(restaurant_id,review)
     .then(response => {
+      console.log('aaaa' + response)
       if (response) {
-        // console.log(response)
+        console.log(response)
+        const reviewList = document.getElementById('reviews-list');
+        reviewList.prepend(createReviewHTML(response));
         return true
       }
-    })
+    }) 
     // .then(response => {
     //   console.log(response)
     //   // const reviewList = document.getElementById('reviews-list');
@@ -128,20 +131,26 @@ toggleFavorite = (restaurant = self.restaurant) => {
   let command = restaurant.is_favorite.toString()  == 'true' ? false : true;
   
   DBHelper.toggleFavoriteStatus(restaurant.id, command).then(updatedRestaurant => {
-    self.restaurant.is_favorite = updatedRestaurant.is_favorite;
-    // console.log(updatedRestaurant.is_favorite)
-    // console.log(updatedRestaurant.is_favorite == 'true')
-    // favoriteButton.innerHTML = updatedRestaurant.is_favorite == 'true' ? 'Unfavorite' : 'Favorite';
-    favoriteButton.setAttribute('aria-checked', updatedRestaurant.is_favorite);
-    // console.log(updatedRestaurant.is_favorite)
-    favoriteButton.innerHTML = updatedRestaurant.is_favorite.toString() == 'true'  ?  '❤️' :  '🖤'   ;
-    let favoriteLabel = updatedRestaurant.is_favorite.toString() == 'true'  ? 'Restaurant is in favorites. Click to unfavorite' : 'Restaurant is not in favorites. Click to favorite';
-    favoriteButton.setAttribute('aria-label',favoriteLabel)
+    if (updatedRestaurant) {
+      self.restaurant.is_favorite = updatedRestaurant.is_favorite;
+      favoriteButton.setAttribute('aria-checked', updatedRestaurant.is_favorite);
+      favoriteButton.innerHTML = updatedRestaurant.is_favorite.toString() == 'true'  ?  '❤️' :  '🖤'   ;
+      let favoriteLabel = updatedRestaurant.is_favorite.toString() == 'true'  ? 'Restaurant is in favorites. Click to unfavorite' : 'Restaurant is not in favorites. Click to favorite';
+      favoriteButton.setAttribute('aria-label',favoriteLabel)
+    } else {
+      console.log('updated yok')
+      let staus = !self.restaurant.is_favorite
+      console.log(status)
+      self.restaurant.is_favorite = staus
+      favoriteButton.setAttribute('aria-checked', status);
+      favoriteButton.innerHTML = status.toString() == 'true'  ?  '❤️' :  '🖤'   ;
+      let favoriteLabel = status.toString() == 'true'  ? 'Restaurant is in favorites. Click to unfavorite' : 'Restaurant is not in favorites. Click to favorite';
+      favoriteButton.setAttribute('aria-label',favoriteLabel)
+    }
+    
   })
+
 }
-
-
-
 
 
 

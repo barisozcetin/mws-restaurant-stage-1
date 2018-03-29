@@ -41,7 +41,7 @@ self.addEventListener("activate", function(event) {
 
 // First checking cache for matching response. If not fetching and putting a clone in dynamic cache
 self.addEventListener("fetch", function(event) {
-  // console.log(event.request.url)
+  console.log(event.request.url)
   const dbUrl = "http://localhost:1337/restaurants";
   const reviewsUrl = "http://localhost:1337/reviews/";
   if (event.request.url.includes(dbUrl)) {
@@ -174,6 +174,37 @@ self.addEventListener("sync", function(event) {
                 // console.log(data)
                 addReviewToIdb("reviews", review.restaurant_id, data);
                 deleteItemFromIdb("sync-reviews", review.id);
+              });
+            }
+          });
+        }
+      })
+    );
+  }
+  if (event.tag === "sync-favorite-status") {
+    console.log("[Service Worker] Syncing favorite changes");
+    event.waitUntil(
+      readAllFromIdb("sync-favorite").then(data => {
+        for (let restaurant of data) {
+          // console.log(review);
+          fetch(`http://localhost:1337/restaurants/${restaurant.id}/?is_favorite=` + restaurant.status, {
+            method: "PUT",
+            headers: {
+              "content-type": "application/json",
+              "accept": "application/json"
+            }
+          }).then(response => {
+            if (response.ok) {
+              response.json().then(data => {
+                // console.log(data)
+                // addReviewToIdb("reviews", review.restaurant_id, data);
+                readOneFromIdb("restaurants",restaurant.id).then(res => {
+                  res.is_favorite = restaurant.status
+                  writeToIdb("restaurants",res).then(() => {
+                    deleteItemFromIdb("sync-favorite", restaurant.id);
+                  })
+                })
+                
               });
             }
           });

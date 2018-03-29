@@ -80,10 +80,10 @@ class DBHelper {
         if (response) {
           return response.reviews;
         } else {
-          return fetch(DBHelper.RESTAURANT_REVIEWS_ENDPOINT + restaurantId).then(response => {
-
-              return response.json()
-          
+          return fetch(
+            DBHelper.RESTAURANT_REVIEWS_ENDPOINT + restaurantId
+          ).then(response => {
+            return response.json();
           });
         }
       })
@@ -96,30 +96,33 @@ class DBHelper {
   /** NEW - Posting a new review */
   static postReviewToRestaurant(restaurantId, review) {
     if ("serviceWorker" in navigator && "SyncManager" in window) {
-      return navigator.serviceWorker.ready.then(sw => {
-        writeToIdb("sync-reviews", review)
-          .then(() => {
-            return sw.sync.register("sync-new-review");
-          })
-          .then(() => {
-            // console.log ('yeni fonksiyon cevap göndermeli')
-            // const response = {status: 'synced'};
-            // console.log('response')
-            // return response;
-            const snackbar = document.querySelector("#snackbar");
-            snackbar.innerHTML = 'Your review saved for syncronization  <a href="#" id="close-notification">Dismiss</a>';
-            snackbar.setAttribute("aria-expanded", "true");
-            snackbar.addEventListener("click", () => {
-              snackbar.setAttribute("aria-expanded", "false")
+      return navigator.serviceWorker.ready
+        .then(sw => {
+          writeToIdb("sync-reviews", review)
+            .then(() => {
+              return sw.sync.register("sync-new-review");
+            })
+            .then(() => {
+              // console.log ('yeni fonksiyon cevap göndermeli')
+              // const response = {status: 'synced'};
+              // console.log('response')
+              // return response;
+              const snackbar = document.querySelector("#snackbar");
+              snackbar.innerHTML =
+                'Your review saved for syncronization  <a href="#" id="close-notification">Dismiss</a>';
+              snackbar.setAttribute("aria-expanded", "true");
+              snackbar.addEventListener("click", () => {
+                snackbar.setAttribute("aria-expanded", "false");
+              });
+              // debugger;
+              setTimeout(() => {
+                snackbar.setAttribute("aria-expanded", "false");
+              }, 5000);
+              return review;
             });
-            // debugger;
-            setTimeout(() => {
-              snackbar.setAttribute("aria-expanded", "false");
-            }, 5000);
-            return false;
-          });
-        //** Probably i should move this to restaurant info but not sure how to catch it */
-      });
+          //** Probably i should move this to restaurant info but not sure how to catch it */
+        })
+        .then(() => review);
     } else {
       return fetch(DBHelper.NEW_REVIEW_ENDPOINT, {
         method: "POST",
@@ -148,16 +151,31 @@ class DBHelper {
   static toggleFavoriteStatus(restaurantId, newStatus) {
     return fetch(DBHelper.TOGGLE_FAVORITE_ENDPOINT(restaurantId, newStatus), {
       method: "PUT"
-    }).then(response => {
-      console.log(response);
-      if ("serviceWorker" in navigator){
-        readOneFromIdb('restaurants', restaurantId).then(restaurant => {
-          restaurant.is_favorite = newStatus;
-          writeToIdb('restaurants', restaurant)
-        })
-      }
-      return response.json()
-    });
+    })
+      .then(response => {
+        // console.log(response);
+        if ("serviceWorker" in navigator) {
+          readOneFromIdb("restaurants", restaurantId).then(restaurant => {
+            restaurant.is_favorite = newStatus;
+            writeToIdb("restaurants", restaurant);
+          });
+        }
+        return response.json();
+      })
+      .catch(error => {
+        this.syncFavoriteStatus(restaurantId,newStatus)
+      });
+  }
+
+  static syncFavoriteStatus(restaurantId, newStatus) {
+    if ("serviceWorker" in navigator && "SyncManager" in window) {
+      const favoriteObject = { id: restaurantId, status: newStatus };
+      return navigator.serviceWorker.ready.then(sw => {
+        writeToIdb("sync-favorite", favoriteObject).then(() => {
+          return sw.sync.register("sync-favorite-status");
+        });
+      });
+    }
   }
 
   /**
@@ -193,7 +211,11 @@ class DBHelper {
    * Fetch restaurants by a cuisine and a neighborhood with proper error handling.
    */
 
-  static fetchRestaurantByCuisineAndNeighborhood(cuisine, neighborhood, isFavorite) {
+  static fetchRestaurantByCuisineAndNeighborhood(
+    cuisine,
+    neighborhood,
+    isFavorite
+  ) {
     return DBHelper.fetchRestaurants().then(restaurants => {
       let results = restaurants;
       if (cuisine != "all") {
