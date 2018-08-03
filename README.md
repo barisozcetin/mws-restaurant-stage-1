@@ -13,6 +13,7 @@ forked from: `https://github.com/udacity/mws-restaurant-stage-1`
     * Performance: >90
     * Accessibility: 100
 * Vanilla js
+* Responsive design with CSS Grid
 
 ### How to run?
 
